@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c5cab">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="答题测试">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<title>答题测试</title>
+<style>
+:root{ --blue:#1c5cab; --green:#1baf7a; --red:#e34948; --gold:#eda100; --bg:#f2f5f9; }
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+body{ font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:#0b0b0b; -webkit-tap-highlight-color:transparent; }
+.app{ max-width:720px; margin:0 auto; padding:20px 16px 40px; padding:calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom)); }
+.page{ display:none; } .page.active{ display:block; }
+.head{ background:var(--blue); color:#fff; border-radius:14px; padding:22px 20px; margin-bottom:18px; }
+.head h1{ font-size:21px; line-height:1.4; font-weight:700; }
+.head .sub{ font-size:13px; opacity:.85; margin-top:8px; line-height:1.6; }
+.start-meta{ background:#fff; border-radius:12px; padding:16px 18px; margin-bottom:16px; font-size:15px; line-height:1.9; }
+.start-meta .k{ color:#52514e; }
+.btn{ display:block; width:100%; padding:15px; border:0; border-radius:12px; font-size:17px; font-weight:700; cursor:pointer; text-align:center; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+.btn-primary{ background:var(--blue); color:#fff; }
+.btn-ghost{ background:#fff; color:var(--blue); border:2px solid var(--blue); }
+.progress-wrap{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.progress-bar{ flex:1; height:8px; background:#dfe6ef; border-radius:4px; overflow:hidden; }
+.progress-bar .fill{ height:100%; background:var(--blue); border-radius:4px; transition:width .2s; }
+.progress-txt{ font-size:13px; color:#52514e; white-space:nowrap; }
+.q-card{ background:#fff; border-radius:14px; padding:20px; margin:14px 0; }
+.q-tag{ display:inline-block; background:#eef5ff; color:var(--blue); font-size:12px; border-radius:6px; padding:3px 9px; margin-bottom:12px; }
+.q-text{ font-size:17px; line-height:1.6; font-weight:600; }
+.opts{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+.opt{ display:flex; align-items:flex-start; gap:12px; background:#fff; border:2px solid #e3e8ef; border-radius:12px; padding:13px 14px; cursor:pointer; font-size:15px; line-height:1.5; transition:all .12s; text-align:left; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+.opt .k{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:#eef2f7; color:#52514e; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; }
+.opt.sel{ border-color:var(--blue); background:#eef5ff; } .opt.sel .k{ background:var(--blue); color:#fff; }
+.nav{ display:flex; gap:10px; margin-top:18px; }
+.nav .btn{ flex:1; } .btn:disabled{ opacity:.4; cursor:not-allowed; }
+.result-head{ text-align:center; background:#fff; border-radius:14px; padding:26px 20px; margin-bottom:16px; }
+.ring{ position:relative; width:140px; height:140px; margin:0 auto 12px; }
+.ring svg{ transform:rotate(-90deg); }
+.ring .num{ position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.ring .num b{ font-size:34px; } .ring .num span{ font-size:13px; color:#52514e; }
+.grade{ font-size:19px; font-weight:700; }
+.review{ display:flex; flex-direction:column; gap:12px; }
+.review-item{ background:#fff; border-radius:12px; padding:16px; border-left:4px solid var(--green); }
+.review-item.wrong{ border-left-color:var(--red); }
+.review-item .rq{ font-size:15px; font-weight:600; line-height:1.5; margin-bottom:8px; }
+.review-item .row{ font-size:14px; line-height:1.7; }
+.review-item .row .k{ color:#52514e; }
+.review-item .row .ok{ color:var(--green); font-weight:600; }
+.review-item .row .no{ color:var(--red); font-weight:600; }
+.review-item .why{ margin-top:8px; background:#f8f6f0; border-radius:8px; padding:10px 12px; font-size:13.5px; line-height:1.6; color:#4a3f2f; }
+.actions{ display:flex; gap:10px; margin-top:18px; } .actions .btn{ flex:1; }
+.footer-note{ text-align:center; color:#8a8f98; font-size:12px; margin-top:24px; }
+.modal{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:99; padding:24px; }
+.modal-box{ background:#fff; border-radius:14px; padding:22px; max-width:320px; width:100%; }
+.modal-text{ font-size:15px; line-height:1.6; margin-bottom:18px; }
+.modal-actions{ display:flex; gap:10px; } .modal-actions .btn{ flex:1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="head">
+    <h1 id="hTitle"></h1>
+    <div class="sub" id="hSub"></div>
+  </div>
+
+  <div id="page-start" class="page active">
+    <div class="start-meta">
+      <div><span class="k">题目数量：</span><span id="metaCount"></span></div>
+      <div><span class="k">题型：</span>单选题</div>
+      <div><span class="k">历史最高分：</span><span id="metaBest">—</span></div>
+    </div>
+    <button class="btn btn-primary" id="btnStart">开始答题</button>
+  </div>
+
+  <div id="page-quiz" class="page">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="fill" id="bar"></div></div>
+      <div class="progress-txt" id="barTxt"></div>
+    </div>
+    <div class="q-card">
+      <span class="q-tag" id="qTag"></span>
+      <div class="q-text" id="qText"></div>
+      <div class="opts" id="opts"></div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" id="btnPrev">上一题</button>
+      <button class="btn btn-ghost" id="btnNext">下一题</button>
+      <button class="btn btn-primary" id="btnSubmit">交卷</button>
+    </div>
+  </div>
+
+  <div id="page-result" class="page">
+    <div class="result-head">
+      <div class="ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="60" fill="none" stroke="#e6ebf2" stroke-width="12"/>
+          <circle id="ringFg" cx="70" cy="70" r="60" fill="none" stroke="#1baf7a" stroke-width="12" stroke-linecap="round" stroke-dasharray="376.99" stroke-dashoffset="376.99"/>
+        </svg>
+        <div class="num"><b id="scoreNum">0</b><span>分</span></div>
+      </div>
+      <div class="grade" id="grade"></div>
+      <div style="font-size:13px;color:#52514e;margin-top:4px;" id="scoreDetail"></div>
+    </div>
+    <div class="review" id="review"></div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="btnRetry">再答一次</button>
+      <button class="btn btn-primary" id="btnHome">返回</button>
+    </div>
+  </div>
+
+  <div class="footer-note">题库内容对应同名学习导图 · 题目与选项顺序每次随机</div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-text" id="modalText"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">取消</button>
+      <button class="btn btn-primary" id="modalOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const DATA = {"title":"工伤48小时认定 · 吴某平案","sub":"《工伤保险条例》“48小时”视同工伤条款的适用标准（贵州吴某平案，最高法2026年再审改判）","questions":[{"tag":"脑图卡·③法律依据","q":"“工作时间、工作岗位突发疾病，48小时之内经抢救无效死亡的，视同工伤”这一条款出自哪部法规？","opts":["《劳动合同法》第四十六条","《工伤保险条例》第十五条第一款第（一）项","《社会保险法》第三十六条","《劳动法》第七十三条"],"a":1,"why":"该“48小时”视同工伤条款出自《工伤保险条例》第十五条第一款第（一）项，是本案认定工伤的直接依据。"},{"tag":"脑图卡·②诉讼历程","q":"吴某平案中，州人社局及一审、二审、再审均作出“不予认定工伤”的决定，再审法院给出的核心理由是什么？","opts":["突发疾病不在工作岗位","用人单位未提出工伤认定申请","抢救时长超出48小时","吴某平未参加工伤保险"],"a":2,"why":"再审以“抢救时长超出48小时”为由维持不予认定；后经最高检抗诉、最高法再审予以纠正。"},{"tag":"脑图卡·④起算时间","q":"最高检认为，“48小时”的起算时间应如何确定？","opts":["一律以门诊初诊时间为准","以下达抢救医嘱的时间为准","一律以办理入院时间为准","选取距离实质性抢救最近的诊断时间"],"a":3,"why":"吴某平在发热门诊仅做新冠肺炎排查、未开展疾病诊疗，该时段不能作为起算点；正确起算点＝距离实质性抢救最近的诊断时间。"},{"tag":"脑图卡·⑤死亡时间","q":"本案中，最高法认定的实质死亡时间节点是哪一个？","opts":["5月1日11:20（生命体征不可逆消失）","5月1日12:08（医生正式宣告临床死亡）","4月29日办理入院时","5月1日下达抢救医嘱时"],"a":0,"why":"11:20已无自主呼吸、心跳停止、血压血氧测不出、瞳孔散大对光反射消失，属生命体征不可逆消失；12:08是家属坚持抢救后的正式宣告，不能据此推后死亡时间。"},{"tag":"脑图卡·⑦抗诉改判","q":"最高法2026年4月18日再审的最终结论是什么？","opts":["维持不予认定工伤的决定","属于“48小时之内经抢救无效死亡”，应认定工伤","发回重审","认定不属于工伤但给予人道主义补偿"],"a":1,"why":"最高法认定吴某平属于“在48小时之内经抢救无效死亡的”情形，依法撤销原再审判决、支持认定工伤；家属随后领取工伤保险待遇92万余元。"},{"tag":"脑图卡·起算情节","q":"吴某平案中，门诊初诊时间、入院时间分别是？","opts":["初诊9:00、入院12:00","初诊8:55、入院11:42","初诊8:30、入院10:30","初诊8:55、入院12:08"],"a":1,"why":"门诊初诊为4月29日8:55，入院为当日11:42，宣告死亡为5月1日12:08。再审以初诊起算认定超48小时，最高检纠正起算点。"},{"tag":"脑图卡·连续抢救","q":"最高法认定本案构成“连续抢救”的关键情节是？","opts":["仅在门诊做了简单问询","抢救中断后又重启","入院后病情持续恶化、转入ICU、心脏骤停后持续救治","只做了一次心肺复苏"],"a":2,"why":"入院后病情持续恶化、转ICU重症监护、心脏骤停后持续救治，属于连续抢救，符合48小时内经抢救无效死亡的实质要件。"},{"tag":"脑图卡·典型意义","q":"最高检阐释本案典型意义的核心是？","opts":["48小时是硬性规定、必须机械适用","家属坚持抢救应自行承担后果","死亡时间一律以医生宣告为准","抢救时间界限不应强人所难，不能以冰冷刻度限制亲情坚守"],"a":3,"why":"最高检指出，对抢救时间界限的把握不应强人所难，更不能用冰冷时间刻度限制不离不弃的亲情坚守，避免家属陷入“救亲人”与“保待遇”的两难。"}]};
+
+const $ = id => document.getElementById(id);
+const hTitle = $('hTitle'), hSub = $('hSub');
+hTitle.textContent = DATA.title;
+hSub.textContent = DATA.sub;
+document.title = DATA.title + ' · 答题测试';
+const at = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+if (at) at.content = DATA.title;
+$('metaCount').textContent = DATA.questions.length + ' 题';
+
+// localStorage 容错（file:// 或部分 WebView 下可能被禁用，失败时仅不持久化，不影响答题）
+const LS_KEY = 'quiz_best_' + DATA.title;
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function bestScore(){ const v = lsGet(LS_KEY); return v===null ? null : parseInt(v,10); }
+function saveBest(s){ const b = bestScore(); if(b===null || s>b) lsSet(LS_KEY, String(s)); }
+function refreshBest(){ $('metaBest').textContent = bestScore()===null ? '—' : (bestScore()+' 分'); }
+refreshBest();
+
+function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+let session = [], answers = [], idx = 0;
+
+function startQuiz(){
+  const qorder = shuffle(DATA.questions.map((_,i)=>i));
+  session = qorder.map(orig => { const q = DATA.questions[orig]; const o = shuffle([0,1,2,3]); return { q:q.q, tag:q.tag, opts:o.map(k=>q.opts[k]), a:o.indexOf(q.a), why:q.why }; });
+  answers = session.map(()=>-1);
+  idx = 0;
+  render();
+  show('page-quiz');
+  window.scrollTo(0,0);
+}
+
+function render(){
+  $('barTxt').textContent = (idx+1) + ' / ' + session.length;
+  $('bar').style.width = ((idx+1)/session.length*100) + '%';
+  const q = session[idx];
+  $('qTag').textContent = q.tag;
+  $('qText').textContent = q.q;
+  const labels = ['A','B','C','D'];
+  $('opts').innerHTML = q.opts.map((o,i)=>{
+    const sel = answers[idx]===i ? ' sel' : '';
+    return '<div class="opt'+sel+'" data-i="'+i+'"><span class="k">'+labels[i]+'</span><span>'+o+'</span></div>';
+  }).join('');
+  $('btnPrev').disabled = idx===0;
+  $('btnNext').disabled = idx===session.length-1;
+  $('btnSubmit').style.display = idx===session.length-1 ? 'block' : 'none';
+}
+
+$('opts').addEventListener('click', e=>{
+  const el = e.target.closest('.opt'); if(!el) return;
+  answers[idx] = parseInt(el.getAttribute('data-i'),10);
+  render();
+});
+
+$('btnPrev').onclick = ()=>{ if(idx>0){ idx--; render(); } };
+$('btnNext').onclick = ()=>{ if(idx<session.length-1){ idx++; render(); } };
+
+function show(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); $(id).classList.add('active'); }
+
+$('btnStart').onclick = startQuiz;
+
+// 内置弹窗（替代原生 confirm，iOS/WebView 更稳）
+let modalOk = null;
+function showModal(text, onOk){ $('modalText').textContent = text; modalOk = onOk; $('modal').style.display = 'flex'; }
+$('modalCancel').onclick = ()=>{ $('modal').style.display = 'none'; };
+$('modalOk').onclick = ()=>{ $('modal').style.display = 'none'; if(modalOk) modalOk(); };
+
+$('btnSubmit').onclick = ()=>{
+  const unanswered = answers.filter(a=>a<0).length;
+  if(unanswered>0){ showModal('还有 '+unanswered+' 题未作答，未答将按答错计分。确定交卷吗？', finish); }
+  else { finish(); }
+};
+
+function finish(){
+  let right = 0;
+  const detail = session.map((q,i)=>{ const ok = answers[i]===q.a; if(ok) right++; return {q, my:answers[i], ok}; });
+  const total = session.length;
+  const pct = Math.round(right/total*100);
+  $('scoreNum').textContent = pct;
+  const dash = 376.99;
+  $('ringFg').style.strokeDashoffset = dash - dash*pct/100;
+  $('ringFg').style.stroke = pct>=90 ? '#1baf7a' : (pct>=60 ? '#eda100' : '#e34948');
+  $('grade').textContent = pct===100 ? '满分' : (pct>=90 ? '良好' : (pct>=60 ? '及格' : '需巩固'));
+  $('scoreDetail').textContent = '答对 '+right+' 题 / 共 '+total+' 题';
+  saveBest(pct);
+  const labels = ['A','B','C','D'];
+  $('review').innerHTML = detail.map((d,i)=>{
+    const myTxt = d.my<0 ? '未作答' : labels[d.my]+'. '+d.q.opts[d.my];
+    const okTxt = labels[d.q.a]+'. '+d.q.opts[d.q.a];
+    return '<div class="review-item'+(d.ok?'':' wrong')+'">'
+      + '<div class="rq">'+(i+1)+'. '+d.q.q+'</div>'
+      + '<div class="row"><span class="k">你的答案：</span>'+(d.ok?'<span class="ok">'+myTxt+'</span>':'<span class="no">'+myTxt+'</span>')+'</div>'
+      + (d.ok?'':'<div class="row"><span class="k">正确答案：</span><span class="ok">'+okTxt+'</span></div>')
+      + '<div class="why">📖 '+d.q.why+'</div>'
+      + '</div>';
+  }).join('');
+  show('page-result');
+  window.scrollTo(0,0);
+}
+
+$('btnRetry').onclick = ()=>{ startQuiz(); };
+$('btnHome').onclick = ()=>{ refreshBest(); show('page-start'); window.scrollTo(0,0); };
+
+// 注册 Service Worker（需 HTTPS 或 localhost 才能生效；本地 file:// 下自动跳过，不影响答题）
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

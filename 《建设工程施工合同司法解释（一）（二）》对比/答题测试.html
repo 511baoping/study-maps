@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c5cab">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="答题测试">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<title>答题测试</title>
+<style>
+:root{ --blue:#1c5cab; --green:#1baf7a; --red:#e34948; --gold:#eda100; --bg:#f2f5f9; }
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+body{ font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:#0b0b0b; -webkit-tap-highlight-color:transparent; }
+.app{ max-width:720px; margin:0 auto; padding:20px 16px 40px; padding:calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom)); }
+.page{ display:none; } .page.active{ display:block; }
+.head{ background:var(--blue); color:#fff; border-radius:14px; padding:22px 20px; margin-bottom:18px; }
+.head h1{ font-size:21px; line-height:1.4; font-weight:700; }
+.head .sub{ font-size:13px; opacity:.85; margin-top:8px; line-height:1.6; }
+.start-meta{ background:#fff; border-radius:12px; padding:16px 18px; margin-bottom:16px; font-size:15px; line-height:1.9; }
+.start-meta .k{ color:#52514e; }
+.btn{ display:block; width:100%; padding:15px; border:0; border-radius:12px; font-size:17px; font-weight:700; cursor:pointer; text-align:center; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+.btn-primary{ background:var(--blue); color:#fff; }
+.btn-ghost{ background:#fff; color:var(--blue); border:2px solid var(--blue); }
+.progress-wrap{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.progress-bar{ flex:1; height:8px; background:#dfe6ef; border-radius:4px; overflow:hidden; }
+.progress-bar .fill{ height:100%; background:var(--blue); border-radius:4px; transition:width .2s; }
+.progress-txt{ font-size:13px; color:#52514e; white-space:nowrap; }
+.q-card{ background:#fff; border-radius:14px; padding:20px; margin:14px 0; }
+.q-tag{ display:inline-block; background:#eef5ff; color:var(--blue); font-size:12px; border-radius:6px; padding:3px 9px; margin-bottom:12px; }
+.q-text{ font-size:17px; line-height:1.6; font-weight:600; }
+.opts{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+.opt{ display:flex; align-items:flex-start; gap:12px; background:#fff; border:2px solid #e3e8ef; border-radius:12px; padding:13px 14px; cursor:pointer; font-size:15px; line-height:1.5; transition:all .12s; text-align:left; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+.opt .k{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:#eef2f7; color:#52514e; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; }
+.opt.sel{ border-color:var(--blue); background:#eef5ff; } .opt.sel .k{ background:var(--blue); color:#fff; }
+.nav{ display:flex; gap:10px; margin-top:18px; }
+.nav .btn{ flex:1; } .btn:disabled{ opacity:.4; cursor:not-allowed; }
+.result-head{ text-align:center; background:#fff; border-radius:14px; padding:26px 20px; margin-bottom:16px; }
+.ring{ position:relative; width:140px; height:140px; margin:0 auto 12px; }
+.ring svg{ transform:rotate(-90deg); }
+.ring .num{ position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.ring .num b{ font-size:34px; } .ring .num span{ font-size:13px; color:#52514e; }
+.grade{ font-size:19px; font-weight:700; }
+.review{ display:flex; flex-direction:column; gap:12px; }
+.review-item{ background:#fff; border-radius:12px; padding:16px; border-left:4px solid var(--green); }
+.review-item.wrong{ border-left-color:var(--red); }
+.review-item .rq{ font-size:15px; font-weight:600; line-height:1.5; margin-bottom:8px; }
+.review-item .row{ font-size:14px; line-height:1.7; }
+.review-item .row .k{ color:#52514e; }
+.review-item .row .ok{ color:var(--green); font-weight:600; }
+.review-item .row .no{ color:var(--red); font-weight:600; }
+.review-item .why{ margin-top:8px; background:#f8f6f0; border-radius:8px; padding:10px 12px; font-size:13.5px; line-height:1.6; color:#4a3f2f; }
+.actions{ display:flex; gap:10px; margin-top:18px; } .actions .btn{ flex:1; }
+.footer-note{ text-align:center; color:#8a8f98; font-size:12px; margin-top:24px; }
+.modal{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:99; padding:24px; }
+.modal-box{ background:#fff; border-radius:14px; padding:22px; max-width:320px; width:100%; }
+.modal-text{ font-size:15px; line-height:1.6; margin-bottom:18px; }
+.modal-actions{ display:flex; gap:10px; } .modal-actions .btn{ flex:1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="head">
+    <h1 id="hTitle"></h1>
+    <div class="sub" id="hSub"></div>
+  </div>
+
+  <div id="page-start" class="page active">
+    <div class="start-meta">
+      <div><span class="k">题目数量：</span><span id="metaCount"></span></div>
+      <div><span class="k">题型：</span>单选题</div>
+      <div><span class="k">历史最高分：</span><span id="metaBest">—</span></div>
+    </div>
+    <button class="btn btn-primary" id="btnStart">开始答题</button>
+  </div>
+
+  <div id="page-quiz" class="page">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="fill" id="bar"></div></div>
+      <div class="progress-txt" id="barTxt"></div>
+    </div>
+    <div class="q-card">
+      <span class="q-tag" id="qTag"></span>
+      <div class="q-text" id="qText"></div>
+      <div class="opts" id="opts"></div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" id="btnPrev">上一题</button>
+      <button class="btn btn-ghost" id="btnNext">下一题</button>
+      <button class="btn btn-primary" id="btnSubmit">交卷</button>
+    </div>
+  </div>
+
+  <div id="page-result" class="page">
+    <div class="result-head">
+      <div class="ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="60" fill="none" stroke="#e6ebf2" stroke-width="12"/>
+          <circle id="ringFg" cx="70" cy="70" r="60" fill="none" stroke="#1baf7a" stroke-width="12" stroke-linecap="round" stroke-dasharray="376.99" stroke-dashoffset="376.99"/>
+        </svg>
+        <div class="num"><b id="scoreNum">0</b><span>分</span></div>
+      </div>
+      <div class="grade" id="grade"></div>
+      <div style="font-size:13px;color:#52514e;margin-top:4px;" id="scoreDetail"></div>
+    </div>
+    <div class="review" id="review"></div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="btnRetry">再答一次</button>
+      <button class="btn btn-primary" id="btnHome">返回</button>
+    </div>
+  </div>
+
+  <div class="footer-note">题库内容对应同名学习导图 · 题目与选项顺序每次随机</div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-text" id="modalText"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">取消</button>
+      <button class="btn btn-primary" id="modalOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const DATA = {"title":"建设工程解释（一）（二）对比","sub":"解释一（法释〔2020〕25号）与解释二（法释〔2026〕12号）重点变化对比","questions":[{"tag":"对比·招标效力","q":"对比解释一，解释二（法释〔2026〕12号）在“必须招标未招标”的合同效力上有什么变化？","opts":["解释二与解释一完全一致","解释二一律认定无效","解释二新增缓和：起诉时不再属必须招标的，不以未招标认定无效","解释二要求必须补办招标"],"a":2,"why":"解释二第1条：起诉时该项目不再属于必须招标的，不应仅以未招标而认定合同无效——较解释一“一律无效”有所缓和。"},{"tag":"对比·农民工","q":"关于农民工工资的先行垫付/清偿，解释一与解释二的关系是？","opts":["解释一已专门规定","两解释都有专门规定","解释二删除了相关规定","解释二第8条首次新增农民工工资先行垫付、清偿规定"],"a":3,"why":"解释一无专门规定（仅“实际施工人”规则）；解释二第8条首次明确农民工依《保障农民工工资支付条例》请求先行垫付/清偿。"},{"tag":"对比·优先权期限","q":"解释一中建设工程价款优先受偿权的行使期限是？","opts":["解释一最长18个月，自发包人应当给付工程价款之日起算","解释一规定6个月","解释二取消了期限限制","解释一规定3年"],"a":0,"why":"解释一（法释〔2020〕25号）第41条：行使期限最长18个月，自发包人应当给付工程价款之日起算；解释二第21条进一步细化了期限起算可因变更给付日期顺延。"},{"tag":"对比·优先权范围","q":"对比中，解释二对优先受偿权范围（停工、窝工损失）如何规定？","opts":["停工窝工损失可优先受偿","停工、窝工损失不属于优先受偿范围","违约金可优先受偿","全部损失均可优先受偿"],"a":1,"why":"解释二第17条：承包人就发包人原因造成的停工、窝工等损失主张优先受偿权的，不予支持——明确了范围边界。"},{"tag":"对比·折价协议","q":"解释二规定，承包人依折价协议行使优先受偿权需同时符合哪些条件？","opts":["折价协议一律无效","必须经过诉讼才能行使","符合四条件的折价协议即视为已行使优先受偿权","折价协议只能部分有效"],"a":2,"why":"解释二第18条：工程质量合格＋工程可折价＋发包人逾期经催告仍未支付＋折价金额与实际价值基本相当，四条件同时符合即视为已行使。"},{"tag":"对比·审计评审","q":"对比中，解释二对“审计/财政评审定价款”作了什么限制？","opts":["未约定也必须以审计为准","审计结论一律不可推翻","承包人不能申请鉴定","未约定按审计的，发包人不得以审计/评审结论确定价款"],"a":3,"why":"解释二第13条：未约定按审计/评审的，发包人不得以审计/评审结论定价款；约定后非因承包人原因未按期出具或明显不符，可申请司法鉴定。"},{"tag":"对比·挂靠","q":"对比解释一“只判无效”，解释二对资质借用（挂靠）作了什么细化？","opts":["细化借用资质者向发包人的折价补偿、表见代理、第三人参加诉讼等","解释二取消了挂靠无效","解释二与解释一完全相同","解释二删除了挂靠规定"],"a":0,"why":"解释一第4条仅判出借资质合同无效；解释二第3-5条细化：借用者向发包人主张折价补偿（发包人知情的）、表见代理、通知出借企业作第三人参加诉讼。"},{"tag":"对比·转包代位权","q":"对比中，解释二对接受转包/违法分包者的救济路径有何新增？","opts":["只能向承包人主张","新增可依民法典第535条向发包人行使代位权","可直接起诉发包人","无任何救济"],"a":1,"why":"解释二第6-7条：接受转包/违法分包者可参照合同请求承包人折价补偿，并可依民法典第535条向发包人行使代位权。"},{"tag":"对比·固定价","q":"解释二对固定价合同的调价与解除后折算有何规定？","opts":["固定价可随时调整","解除后一律不补偿","固定价一般不予调整（情势变更除外）；固定总价解除后按比例折算","与解释一完全一致"],"a":2,"why":"解释二第9-10条：固定价工期内人工/建材大涨请求调价一般不支持（另有约定或情势变更除外）；固定总价解除后，合格已施工部分按比例折算。"},{"tag":"对比·质保金","q":"对比中，解释二对工程质量保证金的返还期限起算如何规定？","opts":["自竣工验收之日起算","自合同签订之日起算","与解释一完全一致","自承包人退场之日起算"],"a":3,"why":"解释二第14条：质保金返还期限从承包人退场之日起算（退场后解除的从解除之日起算），并以应得工程价款或折价补偿款为基数。"},{"tag":"对比·解除修复","q":"解释二对合同解除后的移交与质量修复程序有何规定？","opts":["解除后应移交现场/资料；发包人未通知修复即主张先行支付修复费的不支持","解除后无需移交","发包人可直接主张修复费","与解释一完全相同"],"a":0,"why":"解释二第15-16条：解除后发包人请求移交施工现场、施工资料的依法支持；发包人未通知承包人修复而请求先行支付修复费用的，不予支持。"},{"tag":"对比·解释一定位","q":"解释一（法释〔2020〕25号）的基本情况是？","opts":["共23条、2026年施行","共45条、合并原解释一和解释二、2021年1月1日施行","共26条、2018年施行","与解释二同日施行"],"a":1,"why":"解释一（法释〔2020〕25号）共45条，系合并修订原2004年解释一与2018年解释二而来，自2021年1月1日起施行。"}]};
+
+const $ = id => document.getElementById(id);
+const hTitle = $('hTitle'), hSub = $('hSub');
+hTitle.textContent = DATA.title;
+hSub.textContent = DATA.sub;
+document.title = DATA.title + ' · 答题测试';
+const at = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+if (at) at.content = DATA.title;
+$('metaCount').textContent = DATA.questions.length + ' 题';
+
+// localStorage 容错（file:// 或部分 WebView 下可能被禁用，失败时仅不持久化，不影响答题）
+const LS_KEY = 'quiz_best_' + DATA.title;
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function bestScore(){ const v = lsGet(LS_KEY); return v===null ? null : parseInt(v,10); }
+function saveBest(s){ const b = bestScore(); if(b===null || s>b) lsSet(LS_KEY, String(s)); }
+function refreshBest(){ $('metaBest').textContent = bestScore()===null ? '—' : (bestScore()+' 分'); }
+refreshBest();
+
+function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+let session = [], answers = [], idx = 0;
+
+function startQuiz(){
+  const qorder = shuffle(DATA.questions.map((_,i)=>i));
+  session = qorder.map(orig => { const q = DATA.questions[orig]; const o = shuffle([0,1,2,3]); return { q:q.q, tag:q.tag, opts:o.map(k=>q.opts[k]), a:o.indexOf(q.a), why:q.why }; });
+  answers = session.map(()=>-1);
+  idx = 0;
+  render();
+  show('page-quiz');
+  window.scrollTo(0,0);
+}
+
+function render(){
+  $('barTxt').textContent = (idx+1) + ' / ' + session.length;
+  $('bar').style.width = ((idx+1)/session.length*100) + '%';
+  const q = session[idx];
+  $('qTag').textContent = q.tag;
+  $('qText').textContent = q.q;
+  const labels = ['A','B','C','D'];
+  $('opts').innerHTML = q.opts.map((o,i)=>{
+    const sel = answers[idx]===i ? ' sel' : '';
+    return '<div class="opt'+sel+'" data-i="'+i+'"><span class="k">'+labels[i]+'</span><span>'+o+'</span></div>';
+  }).join('');
+  $('btnPrev').disabled = idx===0;
+  $('btnNext').disabled = idx===session.length-1;
+  $('btnSubmit').style.display = idx===session.length-1 ? 'block' : 'none';
+}
+
+$('opts').addEventListener('click', e=>{
+  const el = e.target.closest('.opt'); if(!el) return;
+  answers[idx] = parseInt(el.getAttribute('data-i'),10);
+  render();
+});
+
+$('btnPrev').onclick = ()=>{ if(idx>0){ idx--; render(); } };
+$('btnNext').onclick = ()=>{ if(idx<session.length-1){ idx++; render(); } };
+
+function show(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); $(id).classList.add('active'); }
+
+$('btnStart').onclick = startQuiz;
+
+// 内置弹窗（替代原生 confirm，iOS/WebView 更稳）
+let modalOk = null;
+function showModal(text, onOk){ $('modalText').textContent = text; modalOk = onOk; $('modal').style.display = 'flex'; }
+$('modalCancel').onclick = ()=>{ $('modal').style.display = 'none'; };
+$('modalOk').onclick = ()=>{ $('modal').style.display = 'none'; if(modalOk) modalOk(); };
+
+$('btnSubmit').onclick = ()=>{
+  const unanswered = answers.filter(a=>a<0).length;
+  if(unanswered>0){ showModal('还有 '+unanswered+' 题未作答，未答将按答错计分。确定交卷吗？', finish); }
+  else { finish(); }
+};
+
+function finish(){
+  let right = 0;
+  const detail = session.map((q,i)=>{ const ok = answers[i]===q.a; if(ok) right++; return {q, my:answers[i], ok}; });
+  const total = session.length;
+  const pct = Math.round(right/total*100);
+  $('scoreNum').textContent = pct;
+  const dash = 376.99;
+  $('ringFg').style.strokeDashoffset = dash - dash*pct/100;
+  $('ringFg').style.stroke = pct>=90 ? '#1baf7a' : (pct>=60 ? '#eda100' : '#e34948');
+  $('grade').textContent = pct===100 ? '满分' : (pct>=90 ? '良好' : (pct>=60 ? '及格' : '需巩固'));
+  $('scoreDetail').textContent = '答对 '+right+' 题 / 共 '+total+' 题';
+  saveBest(pct);
+  const labels = ['A','B','C','D'];
+  $('review').innerHTML = detail.map((d,i)=>{
+    const myTxt = d.my<0 ? '未作答' : labels[d.my]+'. '+d.q.opts[d.my];
+    const okTxt = labels[d.q.a]+'. '+d.q.opts[d.q.a];
+    return '<div class="review-item'+(d.ok?'':' wrong')+'">'
+      + '<div class="rq">'+(i+1)+'. '+d.q.q+'</div>'
+      + '<div class="row"><span class="k">你的答案：</span>'+(d.ok?'<span class="ok">'+myTxt+'</span>':'<span class="no">'+myTxt+'</span>')+'</div>'
+      + (d.ok?'':'<div class="row"><span class="k">正确答案：</span><span class="ok">'+okTxt+'</span></div>')
+      + '<div class="why">📖 '+d.q.why+'</div>'
+      + '</div>';
+  }).join('');
+  show('page-result');
+  window.scrollTo(0,0);
+}
+
+$('btnRetry').onclick = ()=>{ startQuiz(); };
+$('btnHome').onclick = ()=>{ refreshBest(); show('page-start'); window.scrollTo(0,0); };
+
+// 注册 Service Worker（需 HTTPS 或 localhost 才能生效；本地 file:// 下自动跳过，不影响答题）
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

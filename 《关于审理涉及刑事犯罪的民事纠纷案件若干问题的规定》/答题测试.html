@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c5cab">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="答题测试">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<title>答题测试</title>
+<style>
+:root{ --blue:#1c5cab; --green:#1baf7a; --red:#e34948; --gold:#eda100; --bg:#f2f5f9; }
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+body{ font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:#0b0b0b; -webkit-tap-highlight-color:transparent; }
+.app{ max-width:720px; margin:0 auto; padding:20px 16px 40px; padding:calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom)); }
+.page{ display:none; } .page.active{ display:block; }
+.head{ background:var(--blue); color:#fff; border-radius:14px; padding:22px 20px; margin-bottom:18px; }
+.head h1{ font-size:21px; line-height:1.4; font-weight:700; }
+.head .sub{ font-size:13px; opacity:.85; margin-top:8px; line-height:1.6; }
+.start-meta{ background:#fff; border-radius:12px; padding:16px 18px; margin-bottom:16px; font-size:15px; line-height:1.9; }
+.start-meta .k{ color:#52514e; }
+.btn{ display:block; width:100%; padding:15px; border:0; border-radius:12px; font-size:17px; font-weight:700; cursor:pointer; text-align:center; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+.btn-primary{ background:var(--blue); color:#fff; }
+.btn-ghost{ background:#fff; color:var(--blue); border:2px solid var(--blue); }
+.progress-wrap{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.progress-bar{ flex:1; height:8px; background:#dfe6ef; border-radius:4px; overflow:hidden; }
+.progress-bar .fill{ height:100%; background:var(--blue); border-radius:4px; transition:width .2s; }
+.progress-txt{ font-size:13px; color:#52514e; white-space:nowrap; }
+.q-card{ background:#fff; border-radius:14px; padding:20px; margin:14px 0; }
+.q-tag{ display:inline-block; background:#eef5ff; color:var(--blue); font-size:12px; border-radius:6px; padding:3px 9px; margin-bottom:12px; }
+.q-text{ font-size:17px; line-height:1.6; font-weight:600; }
+.opts{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+.opt{ display:flex; align-items:flex-start; gap:12px; background:#fff; border:2px solid #e3e8ef; border-radius:12px; padding:13px 14px; cursor:pointer; font-size:15px; line-height:1.5; transition:all .12s; text-align:left; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+.opt .k{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:#eef2f7; color:#52514e; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; }
+.opt.sel{ border-color:var(--blue); background:#eef5ff; } .opt.sel .k{ background:var(--blue); color:#fff; }
+.nav{ display:flex; gap:10px; margin-top:18px; }
+.nav .btn{ flex:1; } .btn:disabled{ opacity:.4; cursor:not-allowed; }
+.result-head{ text-align:center; background:#fff; border-radius:14px; padding:26px 20px; margin-bottom:16px; }
+.ring{ position:relative; width:140px; height:140px; margin:0 auto 12px; }
+.ring svg{ transform:rotate(-90deg); }
+.ring .num{ position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.ring .num b{ font-size:34px; } .ring .num span{ font-size:13px; color:#52514e; }
+.grade{ font-size:19px; font-weight:700; }
+.review{ display:flex; flex-direction:column; gap:12px; }
+.review-item{ background:#fff; border-radius:12px; padding:16px; border-left:4px solid var(--green); }
+.review-item.wrong{ border-left-color:var(--red); }
+.review-item .rq{ font-size:15px; font-weight:600; line-height:1.5; margin-bottom:8px; }
+.review-item .row{ font-size:14px; line-height:1.7; }
+.review-item .row .k{ color:#52514e; }
+.review-item .row .ok{ color:var(--green); font-weight:600; }
+.review-item .row .no{ color:var(--red); font-weight:600; }
+.review-item .why{ margin-top:8px; background:#f8f6f0; border-radius:8px; padding:10px 12px; font-size:13.5px; line-height:1.6; color:#4a3f2f; }
+.actions{ display:flex; gap:10px; margin-top:18px; } .actions .btn{ flex:1; }
+.footer-note{ text-align:center; color:#8a8f98; font-size:12px; margin-top:24px; }
+.modal{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:99; padding:24px; }
+.modal-box{ background:#fff; border-radius:14px; padding:22px; max-width:320px; width:100%; }
+.modal-text{ font-size:15px; line-height:1.6; margin-bottom:18px; }
+.modal-actions{ display:flex; gap:10px; } .modal-actions .btn{ flex:1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="head">
+    <h1 id="hTitle"></h1>
+    <div class="sub" id="hSub"></div>
+  </div>
+
+  <div id="page-start" class="page active">
+    <div class="start-meta">
+      <div><span class="k">题目数量：</span><span id="metaCount"></span></div>
+      <div><span class="k">题型：</span>单选题</div>
+      <div><span class="k">历史最高分：</span><span id="metaBest">—</span></div>
+    </div>
+    <button class="btn btn-primary" id="btnStart">开始答题</button>
+  </div>
+
+  <div id="page-quiz" class="page">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="fill" id="bar"></div></div>
+      <div class="progress-txt" id="barTxt"></div>
+    </div>
+    <div class="q-card">
+      <span class="q-tag" id="qTag"></span>
+      <div class="q-text" id="qText"></div>
+      <div class="opts" id="opts"></div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" id="btnPrev">上一题</button>
+      <button class="btn btn-ghost" id="btnNext">下一题</button>
+      <button class="btn btn-primary" id="btnSubmit">交卷</button>
+    </div>
+  </div>
+
+  <div id="page-result" class="page">
+    <div class="result-head">
+      <div class="ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="60" fill="none" stroke="#e6ebf2" stroke-width="12"/>
+          <circle id="ringFg" cx="70" cy="70" r="60" fill="none" stroke="#1baf7a" stroke-width="12" stroke-linecap="round" stroke-dasharray="376.99" stroke-dashoffset="376.99"/>
+        </svg>
+        <div class="num"><b id="scoreNum">0</b><span>分</span></div>
+      </div>
+      <div class="grade" id="grade"></div>
+      <div style="font-size:13px;color:#52514e;margin-top:4px;" id="scoreDetail"></div>
+    </div>
+    <div class="review" id="review"></div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="btnRetry">再答一次</button>
+      <button class="btn btn-primary" id="btnHome">返回</button>
+    </div>
+  </div>
+
+  <div class="footer-note">题库内容对应同名学习导图 · 题目与选项顺序每次随机</div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-text" id="modalText"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">取消</button>
+      <button class="btn btn-primary" id="modalOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const DATA = {"title":"刑事犯罪的民事纠纷（法释〔2026〕19号）","sub":"刑民程序衔接、同一/关联事实、中止与恢复、证据采信、责任扣减等24条要点","questions":[{"tag":"第2条·定义","q":"本规定所称“涉及刑事犯罪的民事纠纷案件”是指？","opts":["仅指刑事附带民事诉讼案件","有关民事纠纷与刑事案件涉及同一事实或者关联事实的案件","仅指当事人、基本事实完全相同的案件","所有与犯罪沾边的民事案件"],"a":1,"why":"第2条：指民事纠纷与刑事案件涉及同一事实或关联事实的案件；“同一事实”指当事人、基本事实相同。"},{"tag":"第3条·受理","q":"行为人以法人名义订立合同构成犯罪，相对人请求该法人承担民事责任，法院应如何处理？","opts":["属于同一事实，应驳回起诉","只能走刑事附带民事诉讼","基于关联但非同一事实，法院应当依法受理","一律不予受理"],"a":2,"why":"第3条第（一）项：行为人以法人名义订合同构成犯罪，相对人请求未构成犯罪的法人担责的，属关联但非同一事实，法院应依法受理。"},{"tag":"第4条·中止","q":"依第3条受理的民事案件原则上与刑事案件分别审理，但什么情形应裁定中止诉讼？","opts":["刑事案件一经立案就应中止","当事人提交刑事受案回执就应中止","只要由不同法院审理就应中止","民事基本事实认定必须以刑事案件审理结果为依据且刑事尚未审结"],"a":3,"why":"第4条：民事基本事实认定必须以刑事审理结果为依据、刑事尚未审结的，依法裁定中止；第5条明确仅凭受案回执申请中止、不符合条件的，不予支持。"},{"tag":"第6条·证据效力","q":"已为生效刑事裁判认定的事实，当事人在有关民事诉讼中如何处理？","opts":["无须举证证明，但有相反证据足以推翻的除外","仍须重新举证证明","一律直接采信、不得推翻","不能作为民事诉讼证据使用"],"a":0,"why":"第6条：已为生效刑事裁判认定的事实，在有关民事诉讼中无须举证证明，但有相反证据足以推翻的除外。"},{"tag":"第8条·证明标准","q":"因未达到刑事诉讼证明标准而在生效刑事裁判中未予认定的事实，民事案件审理中如何处理？","opts":["一律不得再认定","经审查达到民事诉讼证明标准的，可以依法认定","必须等刑事再审改判后才能认定","只能按证据不足驳回"],"a":1,"why":"第8条：刑事未达证明标准未予认定的事实，民事案件经审查达到民事诉讼证明标准的，可以依法认定（刑民证明标准不同）。"},{"tag":"第9条·责任扣减","q":"当事人请求刑事被告人以外的其他主体担责，对方主张扣减已通过刑事追缴、责令退赔返还或赔偿的部分，法院如何处理？","opts":["一律不予支持","只能由当事人自行协商","人民法院依法予以支持","只能在执行程序中扣减"],"a":2,"why":"第9条：可在民事裁判及执行程序中相应扣减已通过刑事追缴、责令退赔等方式返还或获得赔偿的部分，避免重复赔偿。"},{"tag":"第15条·不予追究","q":"下列哪种情形，当事人基于同一事实提起民事诉讼，法院应当依法受理？","opts":["犯罪嫌疑人已被批准逮捕","刑事案件正在侦查中","刑事判决已生效且被告人有罪","人民检察院决定不起诉"],"a":3,"why":"第15条：不立案/撤销案件、不起诉、生效裁判宣告无罪或不负刑事责任等不予追究刑事责任情形的，基于同一事实提起民事诉讼应依法受理。"},{"tag":"第10条·案外人","q":"案外人提起民事诉讼，对刑事案件中查封、扣押、冻结的财产主张权利，法院如何处理？","opts":["人民法院不予受理，告知其向办案机关申诉或控告","依法受理并确权","直接裁定解除查封","转入刑事审判一并处理"],"a":0,"why":"第10条：对刑案查封扣押冻结财产主张权利的民事诉讼，法院不予受理，告知其向办案机关申诉、控告；刑案已起诉的，可向审理法院提权属异议。"},{"tag":"第1条·原则","q":"本规定第一条确立的审理涉刑民事纠纷案件的基本要求是？","opts":["注重刑民程序有机衔接、整体协调，统一法律适用、维护权益、营造法治化营商环境","一律先刑后民","民事案件一律驳回","以刑事优先为唯一原则"],"a":0,"why":"第1条：应注重刑事诉讼程序与民事诉讼程序的有机衔接、整体协调，有利于统一法律适用、及时有效维护权益、营造法治化营商环境。"},{"tag":"第5条·中止审查","q":"民事诉讼中，当事人仅以刑事受案回执为依据申请中止诉讼，法院如何处理？","opts":["一律裁定中止","经审查不符合中止条件的，不予支持","必须移送公安机关","由当事人自行决定"],"a":1,"why":"第5条：仅以刑事受案回执等为依据申请中止、经审查不符合中止条件的，不予支持；有关机关以已立案要求移送的，应认真审查，非同一事实的应告知并继续审理。"},{"tag":"第7条·证据质证","q":"刑事诉讼中的被告人供述、证人证言等，未作为刑事定案根据且未作为非法证据排除的，民事审理中如何使用？","opts":["直接作为定案依据","一律不得使用","应组织当事人质证，根据质证情况决定是否采信","必须经刑事法官同意才能用"],"a":2,"why":"第7条：该证据材料未作为定案根据、且未作为非法证据排除的，应按民诉法组织质证，根据质证情况决定是否采信。"},{"tag":"第11条·破产衔接","q":"单位涉嫌犯罪进入刑事诉讼程序后，有关当事人申请该单位破产，法院如何处理？","opts":["一律不予受理","必须等刑事判决后再受理","只能由办案机关决定","符合受理条件的可以依法受理，破产程序与刑事诉讼分别进行并统筹衔接"],"a":3,"why":"第11条：符合受理条件的可以依法受理；破产程序与刑事诉讼分别进行，统筹违法所得追缴与债务人财产清收的衔接，一体保护被害人与破产债权人权益。"},{"tag":"第12条·新费用","q":"刑事附带民事诉讼裁判生效后，就新产生的医疗费、护理费等费用，当事人能否另行起诉？","opts":["应当依法受理","一律不予受理","只能申请执行原判决","只能申请再审"],"a":0,"why":"第12条：附带民事裁判生效后，就新产生的为治疗和康复支出的费用另行提起民事诉讼的，法院应当依法受理。"},{"tag":"第13条·逃匿","q":"犯罪行为造成人身损害，犯罪嫌疑人逃匿、刑事诉讼长期无法进行，当事人提起民事诉讼请求赔偿，法院如何处理？","opts":["一律不予受理","可以依法受理，符合条件的可裁定先予执行","必须等抓获嫌疑人后","只能走国家赔偿"],"a":1,"why":"第13条：因逃匿在较长时间内无法进行刑事诉讼的，当事人提起民事诉讼请求损害赔偿的，可依法受理；符合条件的可裁定先予执行。"},{"tag":"第14条·执行非法集资","q":"法院执行民事裁判时发现案件事实属于非法集资等犯罪的部分事实，应如何处理？","opts":["继续执行完毕","直接终结执行","应裁定中止执行并及时移送办案机关","由申请执行人决定"],"a":2,"why":"第14条：应裁定中止执行并及时将材料移送办案机关；生效刑事裁判将申请执行人认定为集资参与人的，按刑事裁判执行、民事裁判终结执行，已执行部分相应扣减。"},{"tag":"第16条·附带民事","q":"刑事诉讼中被害人提起附带民事诉讼，法院认定被告行为不构成犯罪的，如何处理民事责任？","opts":["一律驳回附带民事请求","只能另行起诉","必须移送其他法院","可调解；调解不成可一并作出刑事附带民事判决，依民法典确定责任"],"a":3,"why":"第16条：不构成犯罪的，可对附带民事诉讼调解；调解不成可一并作出刑事附带民事判决，民事责任依民法典等法律确定。"},{"tag":"第17条·合同效力","q":"行为人订立合同的行为构成犯罪，该合同的效力应如何认定？","opts":["依照民法典的规定认定，不因行为构成犯罪而当然无效","一律无效","一律有效","由刑事判决决定"],"a":0,"why":"第17条：行为构成犯罪，有关合同效力及是否对被代理人等发生效力，应依照民法典的规定认定。"},{"tag":"第18条·恶意串通","q":"法定代表人、负责人与相对人恶意串通订合同损害法人利益构成犯罪，相对人主张合同无效，法院如何处理？","opts":["支持合同无效","援引恶意串通主张合同无效的不予支持","合同当然有效","由检察院认定"],"a":1,"why":"第18条：恶意串通损害法人利益构成犯罪，当事人援引民法典第154条主张合同无效的不予支持；相对人主张合同对法人发生效力的也不支持（法人追认除外）；法人可请求连带责任。"},{"tag":"第19条·诈骗代理","q":"行为人以法人名义订合同构成诈骗等犯罪，其行为属无权代理且不构成表见代理，相对人主张合同对法人发生效力并由法人担责，如何处理？","opts":["一律支持","由法人追认后有效","不予支持；法人有过错的可参照民法典第157条承担相应赔偿责任","必须由刑事判决决定"],"a":2,"why":"第19条：无权代理且不构成表见代理的，主张合同对法人发生效力并担责的不予支持；法人有过错的，可参照民法典第157条承担相应赔偿责任。"},{"tag":"第20条·职务侵占","q":"行为人以法人名义订合同，将取得财物非法占有，被认定职务侵占、挪用资金犯罪，相对人主张合同对法人发生效力，如何处理？","opts":["一律无效","由法人追认后有效","一律不予支持","依法予以支持；相对人对损失有过错的，可减少赔偿额"],"a":3,"why":"第20条：被认定职务侵占、挪用资金等犯罪，相对人主张合同对法人发生效力并由其承担违约责任的，依法予以支持；相对人有过错的，可减少赔偿额。"},{"tag":"第21条·担保","q":"债务人订立主合同的行为构成犯罪，担保人请求撤销担保合同，哪种情形法院应予支持？","opts":["主合同债务人以欺诈手段使担保人违背真实意思提供担保，债权人知道或应当知道的","担保人自己经营亏损","主合同已经履行","担保人反悔"],"a":0,"why":"第21条：主合同债务人以欺诈/胁迫手段使担保人违背真实意思提供担保等可撤销情形的，担保人在权利行使期间内请求撤销，应予支持。"},{"tag":"第22条·中止利息","q":"中止诉讼后恢复审理的民事案件，当事人对中止期间的利息有争议，法院如何处理？","opts":["一律不计息","可组织辩论，综合过错、履行能力、中止时间长短等因素合理确定","一律按合同约定计息","移送刑事程序处理"],"a":1,"why":"第22条：可组织当事人充分辩论，综合有无过错及过错程度、履行能力、中止时间长短等因素，合理确定中止期间的利息。"}]};
+
+const $ = id => document.getElementById(id);
+const hTitle = $('hTitle'), hSub = $('hSub');
+hTitle.textContent = DATA.title;
+hSub.textContent = DATA.sub;
+document.title = DATA.title + ' · 答题测试';
+const at = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+if (at) at.content = DATA.title;
+$('metaCount').textContent = DATA.questions.length + ' 题';
+
+// localStorage 容错（file:// 或部分 WebView 下可能被禁用，失败时仅不持久化，不影响答题）
+const LS_KEY = 'quiz_best_' + DATA.title;
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function bestScore(){ const v = lsGet(LS_KEY); return v===null ? null : parseInt(v,10); }
+function saveBest(s){ const b = bestScore(); if(b===null || s>b) lsSet(LS_KEY, String(s)); }
+function refreshBest(){ $('metaBest').textContent = bestScore()===null ? '—' : (bestScore()+' 分'); }
+refreshBest();
+
+function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+let session = [], answers = [], idx = 0;
+
+function startQuiz(){
+  const qorder = shuffle(DATA.questions.map((_,i)=>i));
+  session = qorder.map(orig => { const q = DATA.questions[orig]; const o = shuffle([0,1,2,3]); return { q:q.q, tag:q.tag, opts:o.map(k=>q.opts[k]), a:o.indexOf(q.a), why:q.why }; });
+  answers = session.map(()=>-1);
+  idx = 0;
+  render();
+  show('page-quiz');
+  window.scrollTo(0,0);
+}
+
+function render(){
+  $('barTxt').textContent = (idx+1) + ' / ' + session.length;
+  $('bar').style.width = ((idx+1)/session.length*100) + '%';
+  const q = session[idx];
+  $('qTag').textContent = q.tag;
+  $('qText').textContent = q.q;
+  const labels = ['A','B','C','D'];
+  $('opts').innerHTML = q.opts.map((o,i)=>{
+    const sel = answers[idx]===i ? ' sel' : '';
+    return '<div class="opt'+sel+'" data-i="'+i+'"><span class="k">'+labels[i]+'</span><span>'+o+'</span></div>';
+  }).join('');
+  $('btnPrev').disabled = idx===0;
+  $('btnNext').disabled = idx===session.length-1;
+  $('btnSubmit').style.display = idx===session.length-1 ? 'block' : 'none';
+}
+
+$('opts').addEventListener('click', e=>{
+  const el = e.target.closest('.opt'); if(!el) return;
+  answers[idx] = parseInt(el.getAttribute('data-i'),10);
+  render();
+});
+
+$('btnPrev').onclick = ()=>{ if(idx>0){ idx--; render(); } };
+$('btnNext').onclick = ()=>{ if(idx<session.length-1){ idx++; render(); } };
+
+function show(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); $(id).classList.add('active'); }
+
+$('btnStart').onclick = startQuiz;
+
+// 内置弹窗（替代原生 confirm，iOS/WebView 更稳）
+let modalOk = null;
+function showModal(text, onOk){ $('modalText').textContent = text; modalOk = onOk; $('modal').style.display = 'flex'; }
+$('modalCancel').onclick = ()=>{ $('modal').style.display = 'none'; };
+$('modalOk').onclick = ()=>{ $('modal').style.display = 'none'; if(modalOk) modalOk(); };
+
+$('btnSubmit').onclick = ()=>{
+  const unanswered = answers.filter(a=>a<0).length;
+  if(unanswered>0){ showModal('还有 '+unanswered+' 题未作答，未答将按答错计分。确定交卷吗？', finish); }
+  else { finish(); }
+};
+
+function finish(){
+  let right = 0;
+  const detail = session.map((q,i)=>{ const ok = answers[i]===q.a; if(ok) right++; return {q, my:answers[i], ok}; });
+  const total = session.length;
+  const pct = Math.round(right/total*100);
+  $('scoreNum').textContent = pct;
+  const dash = 376.99;
+  $('ringFg').style.strokeDashoffset = dash - dash*pct/100;
+  $('ringFg').style.stroke = pct>=90 ? '#1baf7a' : (pct>=60 ? '#eda100' : '#e34948');
+  $('grade').textContent = pct===100 ? '满分' : (pct>=90 ? '良好' : (pct>=60 ? '及格' : '需巩固'));
+  $('scoreDetail').textContent = '答对 '+right+' 题 / 共 '+total+' 题';
+  saveBest(pct);
+  const labels = ['A','B','C','D'];
+  $('review').innerHTML = detail.map((d,i)=>{
+    const myTxt = d.my<0 ? '未作答' : labels[d.my]+'. '+d.q.opts[d.my];
+    const okTxt = labels[d.q.a]+'. '+d.q.opts[d.q.a];
+    return '<div class="review-item'+(d.ok?'':' wrong')+'">'
+      + '<div class="rq">'+(i+1)+'. '+d.q.q+'</div>'
+      + '<div class="row"><span class="k">你的答案：</span>'+(d.ok?'<span class="ok">'+myTxt+'</span>':'<span class="no">'+myTxt+'</span>')+'</div>'
+      + (d.ok?'':'<div class="row"><span class="k">正确答案：</span><span class="ok">'+okTxt+'</span></div>')
+      + '<div class="why">📖 '+d.q.why+'</div>'
+      + '</div>';
+  }).join('');
+  show('page-result');
+  window.scrollTo(0,0);
+}
+
+$('btnRetry').onclick = ()=>{ startQuiz(); };
+$('btnHome').onclick = ()=>{ refreshBest(); show('page-start'); window.scrollTo(0,0); };
+
+// 注册 Service Worker（需 HTTPS 或 localhost 才能生效；本地 file:// 下自动跳过，不影响答题）
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>

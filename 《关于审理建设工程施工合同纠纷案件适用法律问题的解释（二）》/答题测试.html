@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c5cab">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="答题测试">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<title>答题测试</title>
+<style>
+:root{ --blue:#1c5cab; --green:#1baf7a; --red:#e34948; --gold:#eda100; --bg:#f2f5f9; }
+*{ margin:0; padding:0; box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+body{ font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; background:var(--bg); color:#0b0b0b; -webkit-tap-highlight-color:transparent; }
+.app{ max-width:720px; margin:0 auto; padding:20px 16px 40px; padding:calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom)); }
+.page{ display:none; } .page.active{ display:block; }
+.head{ background:var(--blue); color:#fff; border-radius:14px; padding:22px 20px; margin-bottom:18px; }
+.head h1{ font-size:21px; line-height:1.4; font-weight:700; }
+.head .sub{ font-size:13px; opacity:.85; margin-top:8px; line-height:1.6; }
+.start-meta{ background:#fff; border-radius:12px; padding:16px 18px; margin-bottom:16px; font-size:15px; line-height:1.9; }
+.start-meta .k{ color:#52514e; }
+.btn{ display:block; width:100%; padding:15px; border:0; border-radius:12px; font-size:17px; font-weight:700; cursor:pointer; text-align:center; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+.btn-primary{ background:var(--blue); color:#fff; }
+.btn-ghost{ background:#fff; color:var(--blue); border:2px solid var(--blue); }
+.progress-wrap{ display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.progress-bar{ flex:1; height:8px; background:#dfe6ef; border-radius:4px; overflow:hidden; }
+.progress-bar .fill{ height:100%; background:var(--blue); border-radius:4px; transition:width .2s; }
+.progress-txt{ font-size:13px; color:#52514e; white-space:nowrap; }
+.q-card{ background:#fff; border-radius:14px; padding:20px; margin:14px 0; }
+.q-tag{ display:inline-block; background:#eef5ff; color:var(--blue); font-size:12px; border-radius:6px; padding:3px 9px; margin-bottom:12px; }
+.q-text{ font-size:17px; line-height:1.6; font-weight:600; }
+.opts{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+.opt{ display:flex; align-items:flex-start; gap:12px; background:#fff; border:2px solid #e3e8ef; border-radius:12px; padding:13px 14px; cursor:pointer; font-size:15px; line-height:1.5; transition:all .12s; text-align:left; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+.opt .k{ flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:#eef2f7; color:#52514e; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; }
+.opt.sel{ border-color:var(--blue); background:#eef5ff; } .opt.sel .k{ background:var(--blue); color:#fff; }
+.nav{ display:flex; gap:10px; margin-top:18px; }
+.nav .btn{ flex:1; } .btn:disabled{ opacity:.4; cursor:not-allowed; }
+.result-head{ text-align:center; background:#fff; border-radius:14px; padding:26px 20px; margin-bottom:16px; }
+.ring{ position:relative; width:140px; height:140px; margin:0 auto 12px; }
+.ring svg{ transform:rotate(-90deg); }
+.ring .num{ position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.ring .num b{ font-size:34px; } .ring .num span{ font-size:13px; color:#52514e; }
+.grade{ font-size:19px; font-weight:700; }
+.review{ display:flex; flex-direction:column; gap:12px; }
+.review-item{ background:#fff; border-radius:12px; padding:16px; border-left:4px solid var(--green); }
+.review-item.wrong{ border-left-color:var(--red); }
+.review-item .rq{ font-size:15px; font-weight:600; line-height:1.5; margin-bottom:8px; }
+.review-item .row{ font-size:14px; line-height:1.7; }
+.review-item .row .k{ color:#52514e; }
+.review-item .row .ok{ color:var(--green); font-weight:600; }
+.review-item .row .no{ color:var(--red); font-weight:600; }
+.review-item .why{ margin-top:8px; background:#f8f6f0; border-radius:8px; padding:10px 12px; font-size:13.5px; line-height:1.6; color:#4a3f2f; }
+.actions{ display:flex; gap:10px; margin-top:18px; } .actions .btn{ flex:1; }
+.footer-note{ text-align:center; color:#8a8f98; font-size:12px; margin-top:24px; }
+.modal{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:99; padding:24px; }
+.modal-box{ background:#fff; border-radius:14px; padding:22px; max-width:320px; width:100%; }
+.modal-text{ font-size:15px; line-height:1.6; margin-bottom:18px; }
+.modal-actions{ display:flex; gap:10px; } .modal-actions .btn{ flex:1; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="head">
+    <h1 id="hTitle"></h1>
+    <div class="sub" id="hSub"></div>
+  </div>
+
+  <div id="page-start" class="page active">
+    <div class="start-meta">
+      <div><span class="k">题目数量：</span><span id="metaCount"></span></div>
+      <div><span class="k">题型：</span>单选题</div>
+      <div><span class="k">历史最高分：</span><span id="metaBest">—</span></div>
+    </div>
+    <button class="btn btn-primary" id="btnStart">开始答题</button>
+  </div>
+
+  <div id="page-quiz" class="page">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="fill" id="bar"></div></div>
+      <div class="progress-txt" id="barTxt"></div>
+    </div>
+    <div class="q-card">
+      <span class="q-tag" id="qTag"></span>
+      <div class="q-text" id="qText"></div>
+      <div class="opts" id="opts"></div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" id="btnPrev">上一题</button>
+      <button class="btn btn-ghost" id="btnNext">下一题</button>
+      <button class="btn btn-primary" id="btnSubmit">交卷</button>
+    </div>
+  </div>
+
+  <div id="page-result" class="page">
+    <div class="result-head">
+      <div class="ring">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="60" fill="none" stroke="#e6ebf2" stroke-width="12"/>
+          <circle id="ringFg" cx="70" cy="70" r="60" fill="none" stroke="#1baf7a" stroke-width="12" stroke-linecap="round" stroke-dasharray="376.99" stroke-dashoffset="376.99"/>
+        </svg>
+        <div class="num"><b id="scoreNum">0</b><span>分</span></div>
+      </div>
+      <div class="grade" id="grade"></div>
+      <div style="font-size:13px;color:#52514e;margin-top:4px;" id="scoreDetail"></div>
+    </div>
+    <div class="review" id="review"></div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="btnRetry">再答一次</button>
+      <button class="btn btn-primary" id="btnHome">返回</button>
+    </div>
+  </div>
+
+  <div class="footer-note">题库内容对应同名学习导图 · 题目与选项顺序每次随机</div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-text" id="modalText"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">取消</button>
+      <button class="btn btn-primary" id="modalOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const DATA = {"title":"建设工程施工合同解释（二）（法释〔2026〕12号）","sub":"招标投标、资质借用、转包、农民工工资、固定价、优先受偿权等23条要点","questions":[{"tag":"第1条·招标效力","q":"建设工程施工合同订立时属必须招标、未经招标订立，起诉时该工程不再属必须招标的，法院如何处理？","opts":["仍应认定合同无效","应当撤销合同","应当判令补办招标","不应仅以未招标而认定合同无效"],"a":3,"why":"第1条：起诉时该项目不再属于必须招标的，不应仅以未招标而认定合同无效。"},{"tag":"第3条·挂靠","q":"建筑施工企业出借资质（挂靠）的合同效力及资质借用费如何处理？","opts":["出借资质合同无效，资质借用费/使用费不予支持","出借资质合同有效","资质借用费应全额支持","借用资质者一律不能请求折价补偿"],"a":0,"why":"第3条：出借资质、允许他人以本企业名义承揽工程的合同无效；主张资质借用费、使用费的不予支持。工程质量合格的，借用者参照约定请求折价补偿的，依法支持。"},{"tag":"第6条·转包","q":"接受转包或违法分包的单位/个人，向没有合同关系的发包人请求折价补偿或赔偿损失，法院如何处理？","opts":["可以直接向发包人主张折价补偿","向无合同关系的发包人主张折价补偿或赔偿，不予支持","一律不能获得任何补偿","必须由法院指定受偿对象"],"a":1,"why":"第6条：接受转包/违法分包者可参照合同请求承包人折价补偿（支持）；向无合同关系的发包人主张折价补偿或赔偿损失的，不予支持（可依第7条走代位权）。"},{"tag":"第8条·农民工工资","q":"参与工程建设的农民工请求建设单位、施工总承包单位、分包单位先行垫付或清偿拖欠工资，依据是？","opts":["依《劳动法》请求","依《劳动合同法》请求","依《保障农民工工资支付条例》请求先行垫付/清偿","只能向直接雇请的包工头主张"],"a":2,"why":"第8条：农民工依《保障农民工工资支付条例》第29、30、36、37条，请求建设单位、施工总承包单位、分包单位等先行垫付、先行清偿或清偿拖欠工资的，依法支持。"},{"tag":"第9条·固定价","q":"固定价合同，工期内人工费、主要建材价发生重大变化，当事人请求调整工程价款，法院如何处理？","opts":["任何情况下都可以调价","只要人工涨价就应调价","法院应主动调整","一般不予支持，但另有约定或情势变更除外"],"a":3,"why":"第9条：固定价结算请求调价的，一般不予支持，但另有约定或符合民法典第533条情势变更的除外。"},{"tag":"第13条·审计评审","q":"约定按审计/财政评审结果确定工程价款，非因承包人原因未在合理期限内出具，承包人如何处理？","opts":["承包人可申请对工程造价进行司法鉴定","只能无限期等待审计结果","应驳回承包人的全部请求","审计结果一律为准、不得质疑"],"a":0,"why":"第13条：非因承包人原因未在合理期限内出具、或明显不符约定的，承包人申请司法鉴定的，法院应予准许；未约定按审计的，发包人不得以审计/评审结论定价款。"},{"tag":"第14条·质保金","q":"合同解除后，工程质量保证金的返还期限从何时起算？","opts":["自合同签订之日起算","自承包人退场之日起算","自竣工验收之日起算","自发包人通知之日起算"],"a":1,"why":"第14条：质保金返还期限从承包人退场之日起算；合同在退场后解除的，从解除之日起算。质保金以应得工程价款（或折价补偿款）为基数。"},{"tag":"第17条·优先受偿","q":"承包人就发包人原因造成的停工、窝工等损失，主张享有建设工程价款优先受偿权，法院如何处理？","opts":["依法予以支持","可以部分支持","不予支持","由法院酌定"],"a":2,"why":"第17条：停工、窝工等损失不属于优先受偿权范围，主张享有优先受偿权的不予支持。"},{"tag":"第2条·中标无效","q":"在确定中标人前，招标人、投标人以意向书等就工程范围、价款等实质性内容谈判且该投标人中标，法院如何认定中标合同？","opts":["认定为有效","按谈判内容认定","依照招标投标法禁止先行就实质性内容谈判等规定认定中标合同无效","由双方协商确定"],"a":2,"why":"第2条：先行就实质性内容谈判并中标，或先订合同又招标的，依照招标投标法禁止串通投标、禁止先行谈判的规定认定中标合同无效。"},{"tag":"第4条·挂靠对发包人","q":"借用资质者以出借企业名义与发包人订合同，发包人订约时不知道也不应当知道挂靠，借用者主张合同直接约束自己与发包人、请求发包人支付折价补偿款，如何处理？","opts":["依法支持","由出借企业决定","法院应通知出借企业参加诉讼","不予支持"],"a":3,"why":"第4条：发包人订约时不知道且不应当知道挂靠情形的，借用者以合同直接约束自己和发包人为由请求发包人支付折价补偿款的，不予支持。"},{"tag":"第5条·表见代理","q":"借用资质者以出借企业名义购买建材、租赁设备，相对人请求该企业承担民事责任，符合什么条件应支持？","opts":["符合民法典第172条表见代理规定的","只要盖了企业章","只要相对人不知道挂靠","只要借用者承认"],"a":0,"why":"第5条：相对人请求出借企业承担民事责任，符合民法典第172条关于表见代理规定的，应予支持。"},{"tag":"第7条·代位权","q":"接受转包/违法分包者向发包人行使代位权的依据是？","opts":["民法典第807条","民法典第535条关于代位权的规定","建筑法第28条","招标投标法"],"a":1,"why":"第7条：借用资质者、接受转包/违法分包者，可依民法典第535条代位权规定，向发包人行使代位权。"},{"tag":"第10条·固定总价解除","q":"采用固定总价的合同解除后，已施工合格部分价款无法协商一致，法院如何确定？","opts":["一律按实际成本","由发包人单方确定","按已施工部分占全部价款的比例乘以固定总价确定","按市场最高价确定"],"a":2,"why":"第10条：可参照计价标准/规范确定已施工部分价款占全部价款的比例，再以该比例乘以合同约定固定总价确定。"},{"tag":"第11条·参照范围","q":"民法典第793条第1款“参照合同关于工程价款的约定”，解释二明确“参照”包括哪些内容？","opts":["仅指价款金额","仅指支付时间","仅指计价方式","价款金额、计价方式、支付时间、调整方法和结算方法等"],"a":3,"why":"第11条：“参照合同关于工程价款的约定”包括工程价款金额、计价方式、支付时间、调整方法和结算方法等相关内容。"},{"tag":"第12条·折价补偿协议","q":"建设工程施工合同无效但质量合格，双方就折价补偿款达成协议，一方主张按协议确定权利义务，法院如何处理？","opts":["依法予以支持","一律无效","须重新评估","由法院酌定"],"a":0,"why":"第12条：无效但质量合格，双方就折价补偿款达成协议，一方主张按协议确定权利义务的，依法予以支持。"},{"tag":"第15条·解除移交","q":"建设工程施工合同解除后，发包人请求承包人移交施工现场、施工资料等，法院如何处理？","opts":["不予处理","依法予以支持","只能等诉讼结束","由承包人决定"],"a":1,"why":"第15条：合同解除后，发包人请求承包人移交施工现场、施工资料等的，法院依法予以支持。"},{"tag":"第16条·修复费用","q":"因承包人原因质量不符约定，发包人未通知承包人修复而请求判令承包人先行支付修复费用，法院如何处理？","opts":["直接支持","驳回修复费但不支持其他","不予支持","由监理决定"],"a":2,"why":"第16条：发包人未通知承包人修复而请求先行支付修复费用的，不予支持；承包人拒绝修复或逾期未修复，发包人修复后可请求合理修复费用。"},{"tag":"第18条·折价协议四条件","q":"承包人依折价协议主张已行使优先受偿权，需同时符合哪些条件？","opts":["只需质量合格","只需工程可折价","只需发包人逾期","工程质量合格＋工程可折价＋逾期经催告未支付＋折价金额与实际价值相当"],"a":3,"why":"第18条：四条件同时符合即视为已行使优先受偿权——质量合格、可折价、逾期经催告仍未支付、折价金额与实际价值基本相当。"},{"tag":"第19条·债权转让","q":"建设工程价款债权的受让人就工程折价/拍卖价款主张优先受偿，法院如何裁判？","opts":["综合竣工验收、价款结算、转让合同效力、是否支付合理转让款等因素裁判","一律支持","一律不支持","仅看转让合同是否有效"],"a":0,"why":"第19条：应综合建设工程是否竣工验收合格、价款是否结算、债权转让合同是否有效、受让人是否支付合理转让款等因素裁判。"},{"tag":"第20条·毁损灭失","q":"建设工程毁损、灭失或被征收，承包人就保险金、赔偿金或补偿金主张优先受偿，法院如何处理？","opts":["不予支持","应予支持","由保险公司决定","只能按普通债权"],"a":1,"why":"第20条：工程毁损、灭失或被征收，承包人就获得的保险金、赔偿金或补偿金主张优先受偿的，应予支持。"},{"tag":"第21条·期限起算","q":"合同约定了给付工程价款日期，因工期顺延等客观原因协商变更给付日期，承包人主张优先受偿权行使期限自变更后日期起算，法院如何处理？","opts":["不予支持","以原约定日期起算","予以支持","以起诉之日起算"],"a":2,"why":"第21条：因工期顺延等客观原因协商变更给付日期，承包人主张自变更后的应给付之日起算优先受偿权行使期限的，予以支持。"}]};
+
+const $ = id => document.getElementById(id);
+const hTitle = $('hTitle'), hSub = $('hSub');
+hTitle.textContent = DATA.title;
+hSub.textContent = DATA.sub;
+document.title = DATA.title + ' · 答题测试';
+const at = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+if (at) at.content = DATA.title;
+$('metaCount').textContent = DATA.questions.length + ' 题';
+
+// localStorage 容错（file:// 或部分 WebView 下可能被禁用，失败时仅不持久化，不影响答题）
+const LS_KEY = 'quiz_best_' + DATA.title;
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function bestScore(){ const v = lsGet(LS_KEY); return v===null ? null : parseInt(v,10); }
+function saveBest(s){ const b = bestScore(); if(b===null || s>b) lsSet(LS_KEY, String(s)); }
+function refreshBest(){ $('metaBest').textContent = bestScore()===null ? '—' : (bestScore()+' 分'); }
+refreshBest();
+
+function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+
+let session = [], answers = [], idx = 0;
+
+function startQuiz(){
+  const qorder = shuffle(DATA.questions.map((_,i)=>i));
+  session = qorder.map(orig => { const q = DATA.questions[orig]; const o = shuffle([0,1,2,3]); return { q:q.q, tag:q.tag, opts:o.map(k=>q.opts[k]), a:o.indexOf(q.a), why:q.why }; });
+  answers = session.map(()=>-1);
+  idx = 0;
+  render();
+  show('page-quiz');
+  window.scrollTo(0,0);
+}
+
+function render(){
+  $('barTxt').textContent = (idx+1) + ' / ' + session.length;
+  $('bar').style.width = ((idx+1)/session.length*100) + '%';
+  const q = session[idx];
+  $('qTag').textContent = q.tag;
+  $('qText').textContent = q.q;
+  const labels = ['A','B','C','D'];
+  $('opts').innerHTML = q.opts.map((o,i)=>{
+    const sel = answers[idx]===i ? ' sel' : '';
+    return '<div class="opt'+sel+'" data-i="'+i+'"><span class="k">'+labels[i]+'</span><span>'+o+'</span></div>';
+  }).join('');
+  $('btnPrev').disabled = idx===0;
+  $('btnNext').disabled = idx===session.length-1;
+  $('btnSubmit').style.display = idx===session.length-1 ? 'block' : 'none';
+}
+
+$('opts').addEventListener('click', e=>{
+  const el = e.target.closest('.opt'); if(!el) return;
+  answers[idx] = parseInt(el.getAttribute('data-i'),10);
+  render();
+});
+
+$('btnPrev').onclick = ()=>{ if(idx>0){ idx--; render(); } };
+$('btnNext').onclick = ()=>{ if(idx<session.length-1){ idx++; render(); } };
+
+function show(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); $(id).classList.add('active'); }
+
+$('btnStart').onclick = startQuiz;
+
+// 内置弹窗（替代原生 confirm，iOS/WebView 更稳）
+let modalOk = null;
+function showModal(text, onOk){ $('modalText').textContent = text; modalOk = onOk; $('modal').style.display = 'flex'; }
+$('modalCancel').onclick = ()=>{ $('modal').style.display = 'none'; };
+$('modalOk').onclick = ()=>{ $('modal').style.display = 'none'; if(modalOk) modalOk(); };
+
+$('btnSubmit').onclick = ()=>{
+  const unanswered = answers.filter(a=>a<0).length;
+  if(unanswered>0){ showModal('还有 '+unanswered+' 题未作答，未答将按答错计分。确定交卷吗？', finish); }
+  else { finish(); }
+};
+
+function finish(){
+  let right = 0;
+  const detail = session.map((q,i)=>{ const ok = answers[i]===q.a; if(ok) right++; return {q, my:answers[i], ok}; });
+  const total = session.length;
+  const pct = Math.round(right/total*100);
+  $('scoreNum').textContent = pct;
+  const dash = 376.99;
+  $('ringFg').style.strokeDashoffset = dash - dash*pct/100;
+  $('ringFg').style.stroke = pct>=90 ? '#1baf7a' : (pct>=60 ? '#eda100' : '#e34948');
+  $('grade').textContent = pct===100 ? '满分' : (pct>=90 ? '良好' : (pct>=60 ? '及格' : '需巩固'));
+  $('scoreDetail').textContent = '答对 '+right+' 题 / 共 '+total+' 题';
+  saveBest(pct);
+  const labels = ['A','B','C','D'];
+  $('review').innerHTML = detail.map((d,i)=>{
+    const myTxt = d.my<0 ? '未作答' : labels[d.my]+'. '+d.q.opts[d.my];
+    const okTxt = labels[d.q.a]+'. '+d.q.opts[d.q.a];
+    return '<div class="review-item'+(d.ok?'':' wrong')+'">'
+      + '<div class="rq">'+(i+1)+'. '+d.q.q+'</div>'
+      + '<div class="row"><span class="k">你的答案：</span>'+(d.ok?'<span class="ok">'+myTxt+'</span>':'<span class="no">'+myTxt+'</span>')+'</div>'
+      + (d.ok?'':'<div class="row"><span class="k">正确答案：</span><span class="ok">'+okTxt+'</span></div>')
+      + '<div class="why">📖 '+d.q.why+'</div>'
+      + '</div>';
+  }).join('');
+  show('page-result');
+  window.scrollTo(0,0);
+}
+
+$('btnRetry').onclick = ()=>{ startQuiz(); };
+$('btnHome').onclick = ()=>{ refreshBest(); show('page-start'); window.scrollTo(0,0); };
+
+// 注册 Service Worker（需 HTTPS 或 localhost 才能生效；本地 file:// 下自动跳过，不影响答题）
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
